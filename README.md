@@ -1,2 +1,2 @@
-# iot-workshops
+# IoT - Workshops
 Workshops for IoT
