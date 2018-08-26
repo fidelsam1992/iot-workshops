@@ -26,20 +26,26 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-// Update these with values suitable for your network.
+const int trigPin = 15;  //D4
+const int echoPin = 0;  //D3
 
+#define LED D4
+
+// Update these with values suitable for your network.
 const char ssid[] = "Vodafone-5AA5";
 const char password[] = "76767174";
 const char* mqtt_server = "192.168.8.101";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
-long lastMsg = 0;
-char msg[50];
-int value = 0;
-boolean somethingPassed = false;
-void setup_wifi() {
 
+long lastMsg = 0;
+long duration;
+int distance;
+boolean somethingPassed = false;
+
+
+void setup_wifi() {
   delay(10);
   // We start by connecting to a WiFi network
   Serial.println();
@@ -71,13 +77,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println();
 
   // Switch on the LED if an 1 was received as first character
-  if ((char)payload[0] == '1') {
-    digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
-    // but actually the LED is on; this is because
-    // it is acive low on the ESP-01)
-  } else {
-    digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
-  }
+  // if ((char)payload[0] == '1') {
+  //   digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
+  //   // but actually the LED is on; this is because
+  //   // it is acive low on the ESP-01)
+  // } else {
+  //   digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
+  // }
 
 }
 
@@ -106,7 +112,11 @@ void reconnect() {
 }
 
 void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  // pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  pinMode(LED, OUTPUT);
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+  // Might need to be 9600
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
@@ -122,28 +132,28 @@ void loop() {
 
   long now = millis();
   
-    
   if (now - lastMsg > 300) {
-    int sensorValue = analogRead(A0);
-    Serial.println("Sensor " + String(sensorValue) + ","+ somethingPassed);
-    lastMsg = now;
-          if (sensorValue > 500 && !somethingPassed){
-              somethingPassed = true;
-              client.publish("sensor1","in");
-              Serial.println("In " + String(sensorValue) + ","+somethingPassed);
-            }
-            // once the car leaves
-            if (somethingPassed && sensorValue <= 500) {
-           
-              somethingPassed = false;  
-              Serial.println("Out " + String(sensorValue) + ","+somethingPassed);
-            }
 
+    // Reads the echoPin, returns the sound wave travel time in microseconds
+    duration = pulseIn(echoPin, HIGH);
 
+    // Calculating the distance
+    distance= duration*0.034/2;
 
+    if (distance < 200 && !somethingPassed) {
+      somethingPassed = true;
+      client.publish("sensor1", "in");
+      Serial.println("In " + String(distance) + "," + somethingPassed);
+      digitalWrite(LED, HIGH);  
+    }
 
+    if (distance >= 200 && somethingPassed) {
+      somethingPassed = false;  
+      Serial.println("Out " + String(distance) + "," + somethingPassed);
+      digitalWrite(LED, LOW);
+    }
 
-   
+    lastMsg = now; 
   }
 }
 
