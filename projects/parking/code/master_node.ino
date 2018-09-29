@@ -15,9 +15,10 @@ long lastTimeChecked;
 const long interval = 4000;
 bool sensorFlags[5] = {false, false, false, false, false};
 
+// connecting to wifi and serialling iut the info
 void setup_wifi() {
   delay(10);
-  // We start by connecting to a WiFi network
+  We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -33,7 +34,7 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-
+// handling the logic for the messages arrived to inc/dec the total counter
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -81,7 +82,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
    Serial.println(counter);
 }
 
-
+// reconnecting in case of a lost connection to the MQTT server
 void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
