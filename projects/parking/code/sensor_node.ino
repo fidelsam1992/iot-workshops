@@ -1,15 +1,15 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-const int trigPin = 15;  //D4
-const int echoPin = 0;  //D3
+const int trigPin = 15;  // D8
+const int echoPin = 0;  // D3
 
 #define LED D4
 
 // update these with values suitable for your network.
-const char ssid[] = "Vodafone-5AA5";
-const char password[] = "76767174";
-const char* mqtt_server = "192.168.8.101";
+const char ssid[] = "";
+const char password[] = "";
+const char* mqtt_server = "broker.mqtt-dashboard.com";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -93,7 +93,7 @@ void setup() {
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   // Might need to be 9600
-  Serial.begin(115200);
+  Serial.begin(9600);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
@@ -108,25 +108,37 @@ void loop() {
 
   long now = millis();
   
-  if (now - lastMsg > 300) {
+  if (now - lastMsg > 500) {
+  
+    // writing to the trigger pin to measure the distance
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
 
+    // Sets the trigPin on HIGH state for 10 micro seconds
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    
     // reading the echoPin, returning the sound wave travel time in microseconds
     duration = pulseIn(echoPin, HIGH);
 
     // calculating the distance
     distance= duration*0.034/2;
+    
+    // for testing purposes
+    // client.publish("testSensor", "TEST");
 
-    if (distance < 200 && !somethingPassed) {
+    if (distance < 100 && !somethingPassed) {
       somethingPassed = true;
       client.publish("sensor1", "in");
       Serial.println("In " + String(distance) + "," + somethingPassed);
-      digitalWrite(LED, HIGH);  
+      digitalWrite(LED, LOW);  
     }
 
-    if (distance >= 200 && somethingPassed) {
+    if (distance >= 100 && somethingPassed) {
       somethingPassed = false;  
       Serial.println("Out " + String(distance) + "," + somethingPassed);
-      digitalWrite(LED, LOW);
+      digitalWrite(LED, HIGH);
     }
 
     lastMsg = now; 
