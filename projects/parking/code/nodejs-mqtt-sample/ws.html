@@ -1,0 +1,98 @@
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<style type='text/css'>
+
+.center {
+    text-align: center;
+}
+
+.brand-name {
+    color: #fff;
+}
+
+.content-family {
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+.main-content-container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.content-header, .content-counter {
+    width: 100%;
+}
+
+.content-header {
+    font-size: 36px;
+}
+
+.content-counter {
+    font-size: 56px;
+}
+
+</style>
+
+<title>Smart Parking Counter</title>
+
+<nav class="navbar fixed-top navbar-dark bg-primary">
+    <a class="navbar-brand brand-name" href="#!">Dell Technologies</a>
+  </nav>
+  
+
+<div class="container-fluid">
+    <div class="main-content-container">
+        <div class="row">
+            <div class="col-md-6 center content-family content-header">
+                Busy slots
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 center content-family content-counter" id="counter">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var reconnectInterval = 2 * 1000 * 60;
+
+    var connect = function() {
+        var ws = new WebSocket('ws://localhost:40510');
+
+        ws.onopen = function() {
+            // uncomment for debugging in the console
+            // console.log('websocket is connected ...');
+            ws.send('connected');
+        }
+
+        ws.onmessage = function(ev) {
+            // uncomment for debugging in the console
+            // console.log(ev);
+            document.getElementById('counter').innerHTML = ev.data;
+        }
+
+        ws.onerror = function() {
+            console.log('socket error in client');
+        }
+
+        ws.onclose = function() {
+            console.log('socket close in client');
+            setTimeout(connect, reconnectInterval);
+        }
+
+        // ws.on('error', function() {
+        // });
+        // ws.on('close', function() {
+            
+        // });
+    }
+
+    connect();
+</script>
